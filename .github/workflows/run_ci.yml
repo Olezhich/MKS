@@ -1,0 +1,38 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Copy sources
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Install dependencies with Poetry
+        run: |
+          poetry install --no-interaction --with dev
+
+      - name: Run ruff formatter
+        run: |
+          poetry run ruff format . --check
+
+      - name: Run ruff check
+        run: |
+          poetry run ruff check .
+
+      - name: Run Mypy
+        run: |
+          poetry run mypy .
