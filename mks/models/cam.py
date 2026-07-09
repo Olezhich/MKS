@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 
 class BaseCam(ABC):
     """Базовый класс для камер. Должен предоставлять набор необходимых векторов для отрисовки.
-    Система координат камеры: X - вправо, Y - вперед, Z - вверх"""
+    Система координат камеры: X - вверх, Y - вперед, Z - вправо"""
 
     def __init__(self, view_angle_horisontal: float, view_angle_vertical: float):
         self._view_angle_horisontal: float = view_angle_horisontal
@@ -34,8 +34,8 @@ class Camera(BaseCam):
         delta_h = np.tan(self._view_angle_horisontal / 2)
         delta_v = np.tan(self._view_angle_vertical / 2)
         return [
-            np.array([-delta_h, 1, delta_v]),
-            np.array([delta_h, 1, delta_v]),
-            np.array([-delta_h, 1, -delta_v]),
-            np.array([delta_h, 1, delta_v]),
+            np.array([-delta_v, 1, delta_h]),
+            np.array([delta_v, 1, delta_h]),
+            np.array([-delta_v, 1, -delta_h]),
+            np.array([delta_v, 1, delta_h]),
         ]
