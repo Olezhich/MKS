@@ -1,4 +1,4 @@
-from mks.models import Camera, Mount, Station
+from mks.models import Camera, Mount, Station, StationCurrentCoords
 from mks.core import calculate_cam_points
 import numpy as np
 
@@ -14,8 +14,10 @@ mount = Mount(0, 0, 0)
 
 station = Station(st_r, st_p, st_y)
 
-# station = Station(-0.893, 7.001, -176.110)
+station_current = StationCurrentCoords(
+    np.array([1438.722, -6640.836, 116.776]), np.array([4.185434, 0.797209, -6.007792])
+)
 
 print(cam)
 
-calculate_cam_points(cam, mount, station)
+calculate_cam_points(cam, mount, station, station_current)
