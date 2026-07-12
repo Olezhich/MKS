@@ -27,17 +27,16 @@ parsed = parse_telemetry_file("out_orbitka.txt")
 
 # print(parsed[1])
 
+N = 10000
+
 mks_pos = np.array(
-    [
-        [point.x_greenwich, point.y_greenwich, point.z_greenwich]
-        for point in parsed[:500]
-    ]
+    [[point.x_greenwich, point.y_greenwich, point.z_greenwich] for point in parsed[:]]
 )
 
 mks_vel = np.array(
     [
         [point.vx_greenwich, point.vy_greenwich, point.vz_greenwich]
-        for point in parsed[:500]
+        for point in parsed[:]
     ]
 )
 
