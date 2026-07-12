@@ -14,6 +14,13 @@ class BaseCam(ABC):
     def get_view_vectors(self) -> list[np.ndarray]:
         pass
 
+    def get_h_view_vectors(self) -> list[np.ndarray]:
+        delta_h = np.tan(self._view_angle_horisontal / 2)
+        return [
+            np.array([0, 1, delta_h]),
+            np.array([0, 1, -delta_h]),
+        ]
+
     def get_center_vector(self) -> np.ndarray:
         return np.array([0, 1, 0])
 
@@ -37,5 +44,5 @@ class Camera(BaseCam):
             np.array([-delta_v, 1, delta_h]),
             np.array([delta_v, 1, delta_h]),
             np.array([-delta_v, 1, -delta_h]),
-            np.array([delta_v, 1, delta_h]),
+            np.array([delta_v, 1, -delta_h]),
         ]
