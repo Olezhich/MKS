@@ -1,5 +1,4 @@
 from mks.models import Mount, Camera, Station
-from typing import Any
 import numpy as np
 
 RE_WGS84 = 6378.137  # Экваториальный радиус (км)
@@ -93,51 +92,16 @@ def batch_convert_to_geo_coords(cam_dot_in_gcs: np.ndarray) -> np.ndarray:
         z + ep2 * B_EARTH * np.sin(theta) ** 3, p - e2 * A_EARTH * np.cos(theta) ** 3
     )
 
-    return np.column_stack((np.degrees(longitude), np.degrees(latitude)))
+    return np.column_stack((np.degrees(latitude), np.degrees(longitude)))
 
 
-"""
-    re - экваториальный радиус земли (км)
-    a - геометрическое сжатие земли
-    Возвращает: долгота, широта в градусах и высоту от поверхности
-"""
-
-
-def convert_to_geo_cords(cam_dot_in_gcs_batch: np.ndarray) -> np.ndarray:
-    res = []
-
-    for cam_dot_in_gcs in cam_dot_in_gcs_batch:
-        a = 6378.137
-        b = 6378.137 * (1.0 - 1 / 298.257223563)
-        e2 = (a**2 - b**2) / a**2
-        ep2 = (a**2 - b**2) / b**2
-
-        x, y, z = cam_dot_in_gcs
-
-        p = np.sqrt(x**2 + y**2)
-
-        # Вспомогательный угол
-        theta = np.arctan2(z * a, p * b)
-
-        longitude = np.arctan2(y, x)
-
-        latitude = np.arctan2(
-            z + ep2 * b * np.sin(theta) ** 3, p - e2 * a * np.cos(theta) ** 3
-        )
-
-        # Высота
-        n = a / np.sqrt(1.0 - e2 * np.sin(latitude) ** 2)
-        h = (p / np.cos(latitude)) - n
-
-        res.append([np.degrees(longitude), np.degrees(latitude), h])
-    return np.array(res)
-
-
-def calculate_cam_points(cam: Camera, mount: Mount, station: Station) -> Any:
+def calculate_cam_points(
+    cam_vec: np.ndarray, mount: Mount, station: Station
+) -> np.ndarray:
 
     # нужно перевести вектора камеры из системы координат камеры в ССК
     # Пирменяем вращения в кронштейне
-    cam_in_mount = mount.get_camera_rotation_matrix() @ cam.get_center_vector()
+    cam_in_mount = mount.get_camera_rotation_matrix() @ cam_vec
 
     # Переводим из системы координат кронштейна в ССК
     cam_in_SCS = cam_in_mount * np.array([1, -1, 1])
@@ -158,4 +122,22 @@ def calculate_cam_points(cam: Camera, mount: Mount, station: Station) -> Any:
     # cam_dot_in_GEO = convert_to_geo_cords(cam_dot_GCS)
     cam_dot_in_GEO = batch_convert_to_geo_coords(cam_dot_GCS)
 
-    print(cam_dot_in_GEO)
+    return cam_dot_in_GEO
+
+
+def calculate_center_cam_point(
+    cam: Camera, mount: Mount, station: Station
+) -> np.ndarray:
+    """Возвращает множество точкек центра камеры"""
+    return calculate_cam_points(cam.get_center_vector(), mount, station)
+
+
+def calculate_view_cam_points(
+    cam: Camera, mount: Mount, station: Station
+) -> tuple[np.ndarray, np.ndarray]:
+    """Возвращает кортеж множеств точек левого и правого углов обзора камеры"""
+    left, right = cam.get_h_view_vectors()
+    return (
+        calculate_cam_points(left, mount, station),
+        calculate_cam_points(right, mount, station),
+    )
