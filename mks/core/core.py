@@ -95,6 +95,21 @@ def batch_convert_to_geo_coords(cam_dot_in_gcs: np.ndarray) -> np.ndarray:
     return np.column_stack((np.degrees(latitude), np.degrees(longitude)))
 
 
+def calculate_sub_satellite_points(station: Station) -> np.ndarray:
+    station_in_GCS = -station.position / np.linalg.norm(
+        station.position, axis=1, keepdims=True
+    )
+
+    # Ищем точку пересечения вектора станции и сферы земли в ГСК
+    station_dot_GCS = batch_earth_intersect(station, station_in_GCS)
+
+    # Считаем широту и долготу
+    # cam_dot_in_GEO = convert_to_geo_cords(cam_dot_GCS)
+    station_dot_in_GEO = batch_convert_to_geo_coords(station_dot_GCS)
+
+    return station_dot_in_GEO
+
+
 def calculate_cam_points(
     cam_vec: np.ndarray, mount: Mount, station: Station
 ) -> np.ndarray:

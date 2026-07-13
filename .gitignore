@@ -223,5 +223,7 @@ __marimo__/
 #others
 
 out_orbitka.txt
+output.kml
+.DS_Store
 
-
+sub_satellite_diff.kml
