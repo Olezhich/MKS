@@ -4,6 +4,7 @@ from mks.core import (
     calculate_view_cam_points,
     calculate_center_cam_point,
     create_kml_from_tracks,
+    calculate_sub_satellite_points,
 )
 import numpy as np
 
@@ -14,7 +15,7 @@ mount = Mount(0, 0, 0)
 
 parsed = parse_telemetry_file("out_orbitka.txt")
 
-N = 2000
+N = 100000
 
 mks_pos = np.array(
     [[point.x_greenwich, point.y_greenwich, point.z_greenwich] for point in parsed[:N]]
@@ -36,7 +37,7 @@ station = Station(*mks_ang, mks_pos, mks_vel)
 print("Calculate Coords")
 
 # Подспутниковая точка
-point1 = calculate_center_cam_point(cam, mount, station)
+point1 = calculate_sub_satellite_points(station)
 
 print("POINT1\n", point1)
 
@@ -58,9 +59,6 @@ print("POINT4\n", point4)
 # Делаем kml файл
 
 create_kml_from_tracks(
-    tracks=[
-        point2,
-        np.array([[point.latitude, point.longitude] for point in parsed[:N]]),
-    ],  # , point2, point3, point4],
-    colors=["#FFFFFF", "#FF00FF"],  # , "#FF0000", "#00FF00", "#00FF00"],
+    tracks=[point1, point2, point3, point4],
+    colors=["#FFFFFF", "#FF0000", "#00FF00", "#00FF00"],
 )
