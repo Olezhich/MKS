@@ -92,7 +92,7 @@ def batch_convert_to_geo_coords(cam_dot_in_gcs: np.ndarray) -> np.ndarray:
         z + ep2 * B_EARTH * np.sin(theta) ** 3, p - e2 * A_EARTH * np.cos(theta) ** 3
     )
 
-    return np.column_stack((np.degrees(latitude), np.degrees(longitude)))
+    return np.column_stack((np.degrees(longitude), np.degrees(latitude)))
 
 
 def calculate_sub_satellite_points(station: Station) -> np.ndarray:
