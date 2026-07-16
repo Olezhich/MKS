@@ -223,7 +223,10 @@ __marimo__/
 #others
 
 out_orbitka.txt
+orbitca_photo.txt
+
 output.kml
 .DS_Store
 
 sub_satellite_diff.kml
+camera_view.kml

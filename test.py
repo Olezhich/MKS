@@ -11,7 +11,7 @@ import numpy as np
 
 cam = Camera(23.9, 35.9, 600)
 
-mount = Mount(0, 0, 0)
+mount = Mount(np.deg2rad(0), np.deg2rad(0), np.deg2rad(0))
 
 parsed = parse_telemetry_file("out_orbitka.txt")
 
@@ -28,9 +28,11 @@ mks_vel = np.array(
     ]
 )
 
-# mks_ang = (parsed[0].roll, parsed[0].pitch, parsed[0].yaw)
-
-mks_ang = (np.deg2rad(0), np.deg2rad(0), np.deg2rad(-180))
+mks_ang = (
+    np.deg2rad(parsed[0].roll),
+    np.deg2rad(parsed[0].pitch),
+    np.deg2rad(parsed[0].yaw),
+)
 
 station = Station(*mks_ang, mks_pos, mks_vel)
 
@@ -42,8 +44,8 @@ point1 = calculate_sub_satellite_points(station)
 print("POINT1\n", point1)
 
 # Центр камеры
-mks_ang = (parsed[0].roll, parsed[0].pitch, parsed[0].yaw)
-station = Station(*mks_ang, mks_pos, mks_vel)
+
+print(station)
 
 point2 = calculate_center_cam_point(cam, mount, station)
 

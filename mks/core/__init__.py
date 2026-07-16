@@ -1,6 +1,7 @@
 from .core import (
     calculate_center_cam_point,
     calculate_view_cam_points,
+    calculate_rect_view_cam_points,
     calculate_sub_satellite_points,
 )
 
@@ -15,4 +16,5 @@ __all__ = [
     "parse_telemetry_file",
     "create_kml_from_tracks",
     "calculate_sub_satellite_points",
+    "calculate_rect_view_cam_points",
 ]
