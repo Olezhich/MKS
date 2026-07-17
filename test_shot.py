@@ -1,13 +1,17 @@
+from pathlib import Path
+
 from mks.core import (
-    parse_telemetry_file,
     calculate_sub_satellite_points,
     calculate_center_cam_point,
     calculate_rect_view_cam_points,
+    parse_telemetry,
 )
 from mks.models import Camera, Mount, Station
 
 import numpy as np
 import simplekml  # type: ignore
+
+from datetime import datetime
 
 
 cam = Camera(23.9, 35.9, 600)
@@ -19,42 +23,18 @@ mount = Mount(np.deg2rad(24.25), np.deg2rad(1.95), np.deg2rad(4.22))
 
 # 8 строка орбитки таргетная
 
-parsed = parse_telemetry_file("orbitca_photo.txt")
-
-mks_pos = np.array(
-    [[point.x_greenwich, point.y_greenwich, point.z_greenwich] for point in parsed[:]]
+station = Station(
+    *parse_telemetry(
+        Path("out_orbitka.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
+    )
 )
 
-mks_vel = np.array(
-    [
-        [point.vx_greenwich, point.vy_greenwich, point.vz_greenwich]
-        for point in parsed[:]
-    ]
-)
-
-mks_ang = (
-    np.deg2rad(parsed[0].roll),
-    np.deg2rad(parsed[0].pitch),
-    np.deg2rad(parsed[0].yaw),
-)
-station = Station(*mks_ang, mks_pos, mks_vel)
-
-print("Calculate Coords")
+print("Calculate Coords", station)
 
 # Подспутниковая точка
 point1 = calculate_sub_satellite_points(station)
 
 print("POINT_1", point1)
-
-mks_pos = np.array(
-    [[parsed[8].x_greenwich, parsed[8].y_greenwich, parsed[8].z_greenwich]]
-)
-
-mks_vel = np.array(
-    [[parsed[8].vx_greenwich, parsed[8].vy_greenwich, parsed[8].vz_greenwich]]
-)
-
-station = Station(*mks_ang, mks_pos, mks_vel)
 
 # Центр камеры
 point2 = calculate_center_cam_point(cam, mount, station)

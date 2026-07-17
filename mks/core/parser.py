@@ -1,118 +1,77 @@
-from dataclasses import dataclass
 from datetime import datetime
-from typing import List
+from pathlib import Path
+from typing import IO
+import numpy as np
+
+import re
+
+# 2026 06 29 14 00 02.673  -4628.335  2300.186  4409.189 -0.037343 -6.541189  3.365051  -176.110  -0.893   7.001  424.5   40.646  153.574  -26.0 1367/12
+
+datetime_pattern = re.compile(r"(\d{4} \d{2} \d{2} \d{2} \d{2} \d{2}\.\d{3})\b")
+
+float_pattern = re.compile(r"(-?\d+\.\d+)\b")
+
+datetime_str = r"%Y %m %d %H %M %S.%f"
 
 
-@dataclass
-class Point:
-    # Дата
-    year: int
-    month: int
-    day: int
-    hour: int
-    minute: int
-    second: float
-    # Координаты
-    x_greenwich: float
-    y_greenwich: float
-    z_greenwich: float
-    vx_greenwich: float
-    vy_greenwich: float
-    vz_greenwich: float
-    # Углы
-    yaw: float  # рыскание
-    roll: float  # крен
-    pitch: float  # тангаж
+def parse_telemetry_f_fp(
+    fp: IO[str], start: datetime, end: datetime
+) -> tuple[float, float, float, np.ndarray, np.ndarray]:
+    """Парсит файл Orbita_UTC"""
+    position: list[list[float]] = []
+    velocity: list[list[float]] = []
+    ang: list[float] = []
 
-    altitude: float  # высота
-    latitude: float  # широта
-    longitude: float  # долгота
-
-    sun: float  # Солнце
-    orbit_pass: str  # Виток П
-
-    def get_datetime(self) -> datetime:
-        return datetime(
-            self.year, self.month, self.day, self.hour, self.minute, int(self.second)
-        )
-
-
-def parse_telemetry_file(filepath: str, encoding: str = "cp1251") -> List[Point]:
-    points_list = []  # type: ignore
     try:
-        with open(filepath, "r", encoding=encoding) as file:
-            lines = file.readlines()
-    except UnicodeDecodeError:
-        print("Не удалось прочитать файл.")
-        return points_list
+        next(fp)  # Строка с заголовком
+        next(fp)  # Пустая строка
+    except StopIteration:
+        raise ValueError("Файл должен начинаться с заголовочной и пустой строк")
 
-    data_lines = lines[1:]
-
-    for line_num, line in enumerate(data_lines, start=2):
-        line = line.strip()
-        if not line:
-            continue
-        parts = line.split()
-
-        if len(parts) < 19:
-            print(
-                f"Строка {line_num} содержит неверное количество колонок: {len(parts)}"
-            )
+    for line in fp:
+        match_time = datetime_pattern.match(line)
+        if not match_time:  # Пропускаем строки с мусором
             continue
 
-        try:
-            if "/" in parts[0]:
-                # ФОРМАТ 1: orbit_pass в начале
-                point = Point(
-                    orbit_pass=parts[0],
-                    year=int(parts[1]),
-                    month=int(parts[2]),
-                    day=int(parts[3]),
-                    hour=int(parts[4]),
-                    minute=int(parts[5]),
-                    second=float(parts[6]),
-                    x_greenwich=float(parts[7]),
-                    y_greenwich=float(parts[8]),
-                    z_greenwich=float(parts[9]),
-                    vx_greenwich=float(parts[10]),
-                    vy_greenwich=float(parts[11]),
-                    vz_greenwich=float(parts[12]),
-                    yaw=float(parts[13]),
-                    roll=float(parts[14]),
-                    pitch=float(parts[15]),
-                    altitude=float(parts[16]),
-                    latitude=float(parts[17]),
-                    longitude=float(parts[18]),
-                    sun=float(parts[19]) if len(parts) > 19 else 0.0,
-                )
-            else:
-                # ФОРМАТ 2: year в начале
-                point = Point(
-                    year=int(parts[0]),
-                    month=int(parts[1]),
-                    day=int(parts[2]),
-                    hour=int(parts[3]),
-                    minute=int(parts[4]),
-                    second=float(parts[5]),
-                    x_greenwich=float(parts[6]),
-                    y_greenwich=float(parts[7]),
-                    z_greenwich=float(parts[8]),
-                    vx_greenwich=float(parts[9]),
-                    vy_greenwich=float(parts[10]),
-                    vz_greenwich=float(parts[11]),
-                    yaw=float(parts[12]),
-                    roll=float(parts[13]),
-                    pitch=float(parts[14]),
-                    altitude=float(parts[15]),
-                    latitude=float(parts[16]),
-                    longitude=float(parts[17]),
-                    sun=float(parts[18]),
-                    orbit_pass=parts[19] if len(parts) > 19 else "unknown",
-                )
+        current = datetime.strptime(match_time.group(1), datetime_str)
 
-            points_list.append(point)
-        except ValueError as e:
-            print(f"Ошибка преобразования данных в строке {line_num}: {e}")
+        if current >= end:
+            break
+        if current <= start:
             continue
 
-    return points_list
+        pos = match_time.end()
+        cur_vectors: list[float] = []
+
+        num = 6 if ang else 9
+
+        for _ in range(num):
+            match_val = float_pattern.search(line, pos)
+            if not match_val:
+                raise ValueError(f'Ошибка в строке: "{line}"')
+            cur_vectors.append(float(match_val.group(1)))
+            pos = match_val.end()
+
+        position.append(cur_vectors[:3])
+        velocity.append(cur_vectors[3:6])
+
+        if not ang:
+            ang = cur_vectors[6:9]
+
+    if not ang:
+        raise ValueError("Нет строк в указанном диапазоне")
+
+    return (
+        np.deg2rad(ang[1]),
+        np.deg2rad(ang[2]),
+        np.deg2rad(ang[0]),
+        np.array(position),
+        np.array(velocity),
+    )
+
+
+def parse_telemetry(
+    filepath: Path, start: datetime, end: datetime
+) -> tuple[float, float, float, np.ndarray, np.ndarray]:
+    with open(filepath, "r") as fp:
+        return parse_telemetry_f_fp(fp, start, end)

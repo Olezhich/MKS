@@ -1,40 +1,51 @@
+from pathlib import Path
+
 from mks.models import Station, Camera, Mount
 from mks.core import (
-    parse_telemetry_file,
     calculate_view_cam_points,
     calculate_center_cam_point,
     create_kml_from_tracks,
     calculate_sub_satellite_points,
+    parse_telemetry,
 )
 import numpy as np
+
+from datetime import datetime
 
 
 cam = Camera(23.9, 35.9, 600)
 
 mount = Mount(np.deg2rad(0), np.deg2rad(0), np.deg2rad(0))
 
-parsed = parse_telemetry_file("out_orbitka.txt")
+# parsed = parse_telemetry_file("out_orbitka.txt")
+# parsed = parse_telemetry_file("orbitca_photo_2.txt")
 
-N = 100000
+# N = 100000
 
-mks_pos = np.array(
-    [[point.x_greenwich, point.y_greenwich, point.z_greenwich] for point in parsed[:N]]
+# mks_pos = np.array(
+#     [[point.x_greenwich, point.y_greenwich, point.z_greenwich] for point in parsed[:N]]
+# )
+
+# mks_vel = np.array(
+#     [
+#         [point.vx_greenwich, point.vy_greenwich, point.vz_greenwich]
+#         for point in parsed[:N]
+#     ]
+# )
+
+# mks_ang = (
+#     np.deg2rad(parsed[0].roll),
+#     np.deg2rad(parsed[0].pitch),
+#     np.deg2rad(parsed[0].yaw),
+# )
+
+# station = Station(*mks_ang, mks_pos, mks_vel)
+
+station = Station(
+    *parse_telemetry(
+        Path("out_orbitka.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
+    )
 )
-
-mks_vel = np.array(
-    [
-        [point.vx_greenwich, point.vy_greenwich, point.vz_greenwich]
-        for point in parsed[:N]
-    ]
-)
-
-mks_ang = (
-    np.deg2rad(parsed[0].roll),
-    np.deg2rad(parsed[0].pitch),
-    np.deg2rad(parsed[0].yaw),
-)
-
-station = Station(*mks_ang, mks_pos, mks_vel)
 
 print("Calculate Coords")
 
