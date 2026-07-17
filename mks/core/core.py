@@ -104,7 +104,6 @@ def calculate_sub_satellite_points(station: Station) -> np.ndarray:
     station_dot_GCS = batch_earth_intersect(station, station_in_GCS)
 
     # Считаем широту и долготу
-    # cam_dot_in_GEO = convert_to_geo_cords(cam_dot_GCS)
     station_dot_in_GEO = batch_convert_to_geo_coords(station_dot_GCS)
 
     return station_dot_in_GEO
@@ -128,13 +127,12 @@ def calculate_cam_points(
     # и начинается обработка множественных значений, зависящих от координат станции
 
     # Переводим в ГСК
-    cam_in_GCS = np.einsum("nij,j->ni", station.get_gcs_basis_matrix(), cam_in_OCS)
+    cam_in_GCS = station.get_gcs_basis_matrix() @ cam_in_OCS
 
     # Ищем точку пересечения вектора камеры и сферы земли в ГСК
     cam_dot_GCS = batch_earth_intersect(station, cam_in_GCS)
 
     # Считаем широту и долготу
-    # cam_dot_in_GEO = convert_to_geo_cords(cam_dot_GCS)
     cam_dot_in_GEO = batch_convert_to_geo_coords(cam_dot_GCS)
 
     return cam_dot_in_GEO
@@ -155,4 +153,29 @@ def calculate_view_cam_points(
     return (
         calculate_cam_points(left, mount, station),
         calculate_cam_points(right, mount, station),
+    )
+
+
+def calculate_rect_view_cam_points(
+    cam: Camera, mount: Mount, station: Station
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Возвращает кортеж точек лв, пв, лн, пн углов камеры"""
+    # получаем вектора камеры
+    lt, rt, lb, rb = cam.get_view_vectors()
+
+    # Вычисляем их долготу и широту
+    coords = (
+        calculate_cam_points(lt, mount, station),
+        calculate_cam_points(rt, mount, station),
+        calculate_cam_points(lb, mount, station),
+        calculate_cam_points(rb, mount, station),
+    )
+
+    print(coords)
+
+    return (
+        calculate_cam_points(lt, mount, station),
+        calculate_cam_points(rt, mount, station),
+        calculate_cam_points(lb, mount, station),
+        calculate_cam_points(rb, mount, station),
     )

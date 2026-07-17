@@ -37,4 +37,4 @@ class Station:
 
         M_batch = np.stack((x, y, z), axis=-1)  # создаём массив матриц перехода
 
-        return M_batch.transpose(0, 2, 1)
+        return M_batch
