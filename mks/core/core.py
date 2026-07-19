@@ -118,7 +118,7 @@ def calculate_cam_points(
     cam_in_mount = mount.get_camera_rotation_matrix() @ cam_vec
 
     # Переводим из системы координат кронштейна в ССК
-    cam_in_SCS = cam_in_mount * np.array([1, -1, 1])
+    cam_in_SCS = cam_in_mount  # * np.array([1, -1, 1])
 
     # Переводим в ОСК
     cam_in_OCS = station.get_mount_rotation_matrix() @ cam_in_SCS
@@ -158,24 +158,33 @@ def calculate_view_cam_points(
 
 def calculate_rect_view_cam_points(
     cam: Camera, mount: Mount, station: Station
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Возвращает кортеж точек лв, пв, лн, пн углов камеры"""
+) -> list[np.ndarray]:
+    """Возвращает список точек лв, пв, лн, пн углов камеры"""
     # получаем вектора камеры
     lt, rt, lb, rb = cam.get_view_vectors()
 
     # Вычисляем их долготу и широту
-    coords = (
+    coords = [
         calculate_cam_points(lt, mount, station),
         calculate_cam_points(rt, mount, station),
-        calculate_cam_points(lb, mount, station),
         calculate_cam_points(rb, mount, station),
-    )
-
-    print(coords)
-
-    return (
-        calculate_cam_points(lt, mount, station),
-        calculate_cam_points(rt, mount, station),
         calculate_cam_points(lb, mount, station),
-        calculate_cam_points(rb, mount, station),
-    )
+    ]
+
+    return coords
+
+
+def calculate_circle_view_cam_points(
+    station: Station, ang_deg: float
+) -> list[np.ndarray]:
+    """Возвращает список точек окружности обзора заданного угла"""
+    vecs = Camera.get_circle_view_vectors(ang_deg)
+
+    mount = Mount(0, 0, 0)
+
+    res = []
+
+    for vec in vecs:
+        res.append(calculate_cam_points(vec, mount, station))
+
+    return res

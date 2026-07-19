@@ -3,11 +3,12 @@ from .core import (
     calculate_view_cam_points,
     calculate_rect_view_cam_points,
     calculate_sub_satellite_points,
+    calculate_circle_view_cam_points,
 )
 
 from .parser import parse_telemetry
 
-from .kml import create_kml_from_tracks
+from .kml import create_kml_from_tracks, create_kml_circle
 
 __all__ = [
     "calculate_center_cam_point",
@@ -16,4 +17,6 @@ __all__ = [
     "calculate_sub_satellite_points",
     "calculate_rect_view_cam_points",
     "parse_telemetry",
+    "calculate_circle_view_cam_points",
+    "create_kml_circle",
 ]

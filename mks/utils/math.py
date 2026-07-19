@@ -1,7 +1,9 @@
 import numpy as np
 
 
-def rotation_matrix(yaw: float, pitch: float, roll: float) -> np.ndarray:
+def rotation_matrix(
+    yaw: float, pitch: float, roll: float, invert_order: bool = False
+) -> np.ndarray:
     """Возвращает матрицу поворота для локальной системы координат.
     Порядок применения поворотов: рысканье -> тангаж -> крен"""
 
@@ -25,4 +27,6 @@ def rotation_matrix(yaw: float, pitch: float, roll: float) -> np.ndarray:
     )
 
     # Вращать будем в локальной системе координат, поэтому применяем в прямом порядке
-    return Rx @ Rz @ Ry
+    if not invert_order:
+        return Rx @ Rz @ Ry
+    return Ry @ Rz @ Rx

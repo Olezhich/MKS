@@ -1,6 +1,8 @@
 import numpy as np
 from abc import ABC, abstractmethod
 
+from mks.utils import rotation_matrix
+
 
 class BaseCam(ABC):
     """Базовый класс для камер. Должен предоставлять набор необходимых векторов для отрисовки.
@@ -17,12 +19,12 @@ class BaseCam(ABC):
     def get_h_view_vectors(self) -> list[np.ndarray]:
         delta_h = np.tan(self._view_angle_horisontal / 2)
         return [
-            np.array([0, 1, delta_h]),
-            np.array([0, 1, -delta_h]),
+            np.array([0, -1, delta_h]),
+            np.array([0, -1, -delta_h]),
         ]
 
     def get_center_vector(self) -> np.ndarray:
-        return np.array([0, 1, 0])
+        return np.array([0, -1, 0])
 
     def __repr__(self) -> str:
         return f"<BaseCam va_h={self._view_angle_horisontal}, va_v={self._view_angle_vertical}"
@@ -41,8 +43,29 @@ class Camera(BaseCam):
         delta_h = np.tan(self._view_angle_horisontal / 2)
         delta_v = np.tan(self._view_angle_vertical / 2)
         return [
-            np.array([-delta_v, 1, delta_h]),
-            np.array([delta_v, 1, delta_h]),
-            np.array([-delta_v, 1, -delta_h]),
-            np.array([delta_v, 1, -delta_h]),
+            np.array([delta_v, -1, -delta_h]),
+            np.array([delta_v, -1, delta_h]),
+            np.array([-delta_v, -1, -delta_h]),
+            np.array([-delta_v, -1, delta_h]),
         ]
+
+    @classmethod
+    def get_circle_view_vectors(
+        self, ang_deg: float, vec_num: int = 36
+    ) -> list[np.ndarray]:
+        """возвращает список векторов для заданного угла обзора"""
+        pitch = np.deg2rad(ang_deg / 2)
+
+        res = []
+
+        yaw = 0.0
+
+        step = (np.pi * 2) / vec_num
+
+        cam_default = np.array([0, -1, 0])
+
+        for _ in range(vec_num):
+            new = rotation_matrix(yaw, pitch, 0, invert_order=True) @ cam_default
+            res.append(new)
+            yaw += step
+        return res
