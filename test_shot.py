@@ -5,6 +5,7 @@ from mks.core import (
     calculate_center_cam_point,
     calculate_rect_view_cam_points,
     parse_telemetry,
+    calculate_circle_view_cam_points,
 )
 from mks.models import Camera, Mount, Station
 
@@ -14,33 +15,48 @@ import simplekml  # type: ignore
 from datetime import datetime
 
 
-cam = Camera(23.9, 35.9, 600)
+cam = Camera(35.9, 23.9, 600)
 
-mount = Mount(np.deg2rad(24.25), np.deg2rad(1.95), np.deg2rad(4.22))
+mount = Mount(np.deg2rad(-24.25), np.deg2rad(1.95), np.deg2rad(4.22))
 
 # рыск    крен    тангаж
 # 4.22  24.25   1.95
 
-# 8 строка орбитки таргетная
-
 station = Station(
     *parse_telemetry(
-        Path("out_orbitka.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
+        Path("2_Orbita_UTC_0_1.txt"),
+        datetime(2026, 6, 29, 14, 31, 12),
+        datetime(2026, 6, 29, 14, 32, 12),
     )
 )
-
-print("Calculate Coords", station)
 
 # Подспутниковая точка
 point1 = calculate_sub_satellite_points(station)
 
-print("POINT_1", point1)
+print("Подспутниковая точка", point1)
 
 # Центр камеры
+old = station
+cnt = len(station.position) // 2
+
+station = Station(
+    old.roll,
+    old.pitch,
+    old.yaw,
+    old.position[cnt : cnt + 1],
+    old.velocity[cnt : cnt + 1],
+)
+
 point2 = calculate_center_cam_point(cam, mount, station)
 
 # прямоугольник обзора
 rect = calculate_rect_view_cam_points(cam, mount, station)
+
+# Окужности обзоров
+# 30
+circle30 = calculate_circle_view_cam_points(station, 30)
+
+print(circle30)
 
 
 kml = simplekml.Kml()
@@ -53,7 +69,7 @@ kml = simplekml.Kml()
 
 coords_track = []
 for pt in point1:
-    lat, lon = pt[0], pt[1]
+    lon, lat = pt[0], pt[1]
     coords_track.append((lon, lat))
 
 linestring = kml.newlinestring(
@@ -61,13 +77,13 @@ linestring = kml.newlinestring(
     description="Трек подспутниковой точки",
     coords=coords_track,
 )
-linestring.style.linestyle.color = simplekml.Color.red
+linestring.style.linestyle.color = simplekml.Color.white
 linestring.style.linestyle.width = 3
 
 # ============================================================
 # 2. Центр камеры (Point)
 # ============================================================
-lat2, lon2 = point2[0][0], point2[0][1]
+lat2, lon2 = point2[0][1], point2[0][0]
 
 point = kml.newpoint(
     name="Центр камеры",
@@ -85,7 +101,7 @@ point.style.iconstyle.scale = 1.5
 # но можно явно указать первую точку в конце
 outer_coords = []
 for pt in rect:
-    lat_r, lon_r = pt[0][0], pt[0][1]
+    lat_r, lon_r = pt[0][1], pt[0][0]
     outer_coords.append((lon_r, lat_r))
 
 # Замыкаем контур (первая точка = последняя)
@@ -100,6 +116,26 @@ polygon = kml.newpolygon(
 polygon.style.linestyle.color = simplekml.Color.green
 polygon.style.linestyle.width = 2
 polygon.style.polystyle.color = simplekml.Color.changealpha("55", simplekml.Color.green)
+
+
+# 30
+
+coords30 = []
+for pt in circle30:
+    lat_r, lon_r = pt[0][1], pt[0][0]
+    coords30.append((lon_r, lat_r))
+
+# Замыкаем контур (первая точка = последняя)
+if coords30[0] != coords30[-1]:
+    coords30.append(coords30[0])
+
+view30 = kml.newlinestring(
+    name="30 deg view",
+    description="Угол обзора",
+    coords=coords30,
+)
+view30.style.linestyle.color = simplekml.Color.green
+view30.style.linestyle.width = 3
 
 # ============================================================
 # Сохранение KML

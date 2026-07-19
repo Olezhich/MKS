@@ -71,7 +71,7 @@ def parse_telemetry_f_fp(
 
 
 def parse_telemetry(
-    filepath: Path, start: datetime, end: datetime
+    filepath: Path, start: datetime, end: datetime, encoding: str = "cp1251"
 ) -> tuple[float, float, float, np.ndarray, np.ndarray]:
-    with open(filepath, "r") as fp:
+    with open(filepath, "r", encoding=encoding) as fp:
         return parse_telemetry_f_fp(fp, start, end)
