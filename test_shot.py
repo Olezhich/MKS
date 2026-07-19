@@ -6,6 +6,7 @@ from mks.core import (
     calculate_rect_view_cam_points,
     parse_telemetry,
     calculate_circle_view_cam_points,
+    create_kml_circle,
 )
 from mks.models import Camera, Mount, Station
 
@@ -17,7 +18,7 @@ from datetime import datetime
 
 cam = Camera(35.9, 23.9, 600)
 
-mount = Mount(np.deg2rad(-24.25), np.deg2rad(1.95), np.deg2rad(4.22))
+mount = Mount(-np.deg2rad(24.25), np.deg2rad(1.95), np.deg2rad(4.22))
 
 # рыск    крен    тангаж
 # 4.22  24.25   1.95
@@ -33,9 +34,7 @@ station = Station(
 # Подспутниковая точка
 point1 = calculate_sub_satellite_points(station)
 
-print("Подспутниковая точка", point1)
-
-# Центр камеры
+# Задаём новую станцию одной точкой
 old = station
 cnt = len(station.position) // 2
 
@@ -47,16 +46,16 @@ station = Station(
     old.velocity[cnt : cnt + 1],
 )
 
+# Центр камеры
 point2 = calculate_center_cam_point(cam, mount, station)
 
 # прямоугольник обзора
 rect = calculate_rect_view_cam_points(cam, mount, station)
 
 # Окужности обзоров
-# 30
 circle30 = calculate_circle_view_cam_points(station, 30)
-
-print(circle30)
+circle60 = calculate_circle_view_cam_points(station, 60)
+circle90 = calculate_circle_view_cam_points(station, 90)
 
 
 kml = simplekml.Kml()
@@ -118,24 +117,10 @@ polygon.style.linestyle.width = 2
 polygon.style.polystyle.color = simplekml.Color.changealpha("55", simplekml.Color.green)
 
 
-# 30
-
-coords30 = []
-for pt in circle30:
-    lat_r, lon_r = pt[0][1], pt[0][0]
-    coords30.append((lon_r, lat_r))
-
-# Замыкаем контур (первая точка = последняя)
-if coords30[0] != coords30[-1]:
-    coords30.append(coords30[0])
-
-view30 = kml.newlinestring(
-    name="30 deg view",
-    description="Угол обзора",
-    coords=coords30,
-)
-view30.style.linestyle.color = simplekml.Color.green
-view30.style.linestyle.width = 3
+# circles
+create_kml_circle(kml, circle30, "#00FF00", "fov30")
+create_kml_circle(kml, circle60, "#FFFF00", "fov60")
+create_kml_circle(kml, circle90, "#FF0000", "fov90")
 
 # ============================================================
 # Сохранение KML

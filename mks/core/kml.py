@@ -65,7 +65,7 @@ def create_kml_from_tracks(
             colors[i], alpha=255
         )  # 255 - полная непрозрачность
         style.linestyle.color = kml_color
-        style.linestyle.width = 4  # Толщина линии
+        style.linestyle.width = 3  # Толщина линии
 
         # 3. Добавляем каждый сегмент как отдельную LineString
         for seg in segments:
@@ -77,3 +77,25 @@ def create_kml_from_tracks(
     # Сохраняем файл
     kml.save(output_file)
     print(f"KML файл успешно сохранен в {output_file}")
+
+
+def create_kml_circle(
+    kml: simplekml.Kml, circle: list[np.ndarray], color: str, name: str
+) -> None:
+    """Создает окружность по списку точек заданного цвета"""
+
+    style = simplekml.Style()
+    style.linestyle.color = hex_to_kml_color(color, alpha=255)
+    style.linestyle.width = 3
+
+    coords = [(pt[0][0], pt[0][1]) for pt in circle]
+
+    # Замыкаем контур (первая точка = последняя)
+    if coords[0] != coords[-1]:
+        coords.append(coords[0])
+
+    circle_line = kml.newlinestring(
+        name=name,
+        coords=coords,
+    )
+    circle_line.style = style

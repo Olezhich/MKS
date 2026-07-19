@@ -61,15 +61,11 @@ class Camera(BaseCam):
         yaw = 0.0
 
         step = (np.pi * 2) / vec_num
-        print(step)
+
+        cam_default = np.array([0, -1, 0])
 
         for _ in range(vec_num):
-            new = rotation_matrix(yaw, pitch, 0, invert_order=True) @ np.array(
-                [0, -1, 0]
-            )
+            new = rotation_matrix(yaw, pitch, 0, invert_order=True) @ cam_default
             res.append(new)
             yaw += step
-
-        print("RES", res)
-
         return res
