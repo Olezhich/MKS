@@ -1,3 +1,5 @@
+from typing import Any
+
 import numpy as np
 import simplekml  # type: ignore
 
@@ -77,6 +79,23 @@ def create_kml_from_tracks(
     # Сохраняем файл
     kml.save(output_file)
     print(f"KML файл успешно сохранен в {output_file}")
+
+
+def create_kml_track(kml: Any, track: np.ndarray, color: str, track_name: str) -> None:
+    """Создаёт линию из массива точек заданного цвета"""
+    style = simplekml.Style()
+    style.linestyle.color = hex_to_kml_color(color, alpha=255)
+    style.linestyle.width = 3
+
+    segments = split_at_nan(track)
+
+    # Добавляем каждый сегмент как отдельную LineString
+    for i, seg in enumerate(segments):
+        if len(seg) >= 2:  # Линия должна состоять минимум из 2 точек
+            # simplekml ожидает координаты в формате (lon, lat, alt) или (lon, lat)
+            tm = f"{track_name}_{i}" if i > 0 else track_name
+            ls = kml.newlinestring(name=tm, coords=seg.tolist())
+            ls.style = style
 
 
 def create_kml_circle(
