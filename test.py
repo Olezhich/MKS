@@ -19,7 +19,7 @@ mount = Mount(np.deg2rad(0), np.deg2rad(0), np.deg2rad(0))
 
 station = Station(
     *parse_telemetry(
-        Path("out_orbitka.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
+        Path("2_Orbita_UTC_21_07_1251.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
     )
 )
 

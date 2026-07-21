@@ -18,7 +18,7 @@ from datetime import datetime
 
 cam = Camera(35.9, 23.9, 600)
 
-mount = Mount(-np.deg2rad(24.25), np.deg2rad(1.95), np.deg2rad(4.22))
+mount = Mount(np.deg2rad(24.25), np.deg2rad(1.95), np.deg2rad(4.22))
 
 # рыск    крен    тангаж
 # 4.22  24.25   1.95

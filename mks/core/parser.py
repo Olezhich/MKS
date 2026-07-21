@@ -7,7 +7,7 @@ import re
 
 # 2026 06 29 14 00 02.673  -4628.335  2300.186  4409.189 -0.037343 -6.541189  3.365051  -176.110  -0.893   7.001  424.5   40.646  153.574  -26.0 1367/12
 
-datetime_pattern = re.compile(r"(\d{4} \d{2} \d{2} \d{2} \d{2} \d{2}\.\d{3})\b")
+datetime_pattern = re.compile(r"(\d{4}\s+\d{2}\s+\d{2}\s+\d{2}\s+\d{2}\s+\d{2}\.\d+)\b")
 
 float_pattern = re.compile(r"(-?\d+\.\d+)\b")
 
@@ -59,6 +59,7 @@ def parse_telemetry_f_fp(
             ang = cur_vectors[6:9]
 
     if not ang:
+        print(position)
         raise ValueError("Нет строк в указанном диапазоне")
 
     return (
