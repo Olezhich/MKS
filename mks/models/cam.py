@@ -69,3 +69,33 @@ class Camera(BaseCam):
             res.append(new)
             yaw += step
         return res
+
+
+class Giper(BaseCam):
+    """Класс для камер гиперспектрометра, конструктор все значения принимает в градусах"""
+
+    def __init__(
+        self,
+        view_angle_horisontal: float,
+        view_angle_vertical: float,
+        camera_pitch: float,
+    ):
+        super().__init__(
+            np.deg2rad(view_angle_horisontal), np.deg2rad(view_angle_vertical)
+        )
+        self.camera_pitch = np.deg2rad(camera_pitch)
+
+    def get_h_view_vectors(self):
+        delta_h = np.tan(self._view_angle_horisontal / 2)
+        matrix = rotation_matrix(0, self.camera_pitch, 0)
+        return [
+            matrix @ np.array([0, -1, delta_h]),
+            matrix @ np.array([0, -1, -delta_h]),
+        ]
+
+    def get_view_vectors(self):
+        return self.get_h_view_vectors()
+
+    def get_center_vector(self) -> np.ndarray:
+        matrix = rotation_matrix(0, self.camera_pitch, 0)
+        return matrix @ np.array([0, -1, 0])
