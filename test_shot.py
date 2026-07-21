@@ -80,14 +80,12 @@ for pt in rect:
 if outer_coords[0] != outer_coords[-1]:
     outer_coords.append(outer_coords[0])
 
-polygon = kml.newpolygon(
+polygon = kml.newlinestring(
     name="Прямоугольник обзора",
-    description="Область обзора камеры",
-    outerboundaryis=outer_coords,
+    coords=outer_coords,
 )
 polygon.style.linestyle.color = simplekml.Color.green
 polygon.style.linestyle.width = 2
-polygon.style.polystyle.color = simplekml.Color.changealpha("55", simplekml.Color.green)
 
 # Окужности обзоров
 if FOV_WO_ANG:
