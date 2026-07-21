@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from mks.models import Camera, Mount
+from mks.models import Camera, Mount, Giper
 from mks.core import (
     calculate_view_cam_points,
     calculate_center_cam_point,
@@ -14,8 +14,13 @@ from datetime import datetime
 
 import simplekml  # type: ignore
 
+GIPER_FLAG = False  # Гиперспектрометр если True, иначе фотоаппарат
 
-cam = Camera(35.9, 23.9, 600)
+
+camera = Camera(35.9, 23.9, 600)
+giper = Giper(3.61, 1.0, 5)
+
+cam = giper if GIPER_FLAG else camera
 
 mount = Mount(np.deg2rad(0), np.deg2rad(0), np.deg2rad(0))
 

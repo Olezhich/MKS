@@ -1,4 +1,4 @@
-from mks.models import Mount, Camera, Station
+from mks.models import Mount, BaseCam, Camera, Station
 import numpy as np
 
 RE_WGS84 = 6378.137  # Экваториальный радиус (км)
@@ -139,14 +139,14 @@ def calculate_cam_points(
 
 
 def calculate_center_cam_point(
-    cam: Camera, mount: Mount, station: Station
+    cam: BaseCam, mount: Mount, station: Station
 ) -> np.ndarray:
     """Возвращает множество точкек центра камеры"""
     return calculate_cam_points(cam.get_center_vector(), mount, station)
 
 
 def calculate_view_cam_points(
-    cam: Camera, mount: Mount, station: Station
+    cam: BaseCam, mount: Mount, station: Station
 ) -> tuple[np.ndarray, np.ndarray]:
     """Возвращает кортеж множеств точек левого и правого углов обзора камеры"""
     left, right = cam.get_h_view_vectors()
