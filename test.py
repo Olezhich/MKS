@@ -1,53 +1,45 @@
 from pathlib import Path
 
-from mks.models import Station, Camera, Mount
+from mks.models import Camera, Mount
 from mks.core import (
     calculate_view_cam_points,
     calculate_center_cam_point,
-    create_kml_from_tracks,
     calculate_sub_satellite_points,
     parse_telemetry,
+    create_kml_track,
 )
 import numpy as np
 
 from datetime import datetime
+
+import simplekml  # type: ignore
 
 
 cam = Camera(35.9, 23.9, 600)
 
 mount = Mount(np.deg2rad(0), np.deg2rad(0), np.deg2rad(0))
 
-station = Station(
-    *parse_telemetry(
-        Path("out_orbitka.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
-    )
-)
+kml = simplekml.Kml()
 
-print("Calculate Coords")
+for station, circle in parse_telemetry(
+    Path("2_Orbita_UTC_21_07_1251.txt"), datetime(2026, 6, 28), datetime(2026, 7, 1)
+):
+    # Подспутниковая точка
+    point1 = calculate_sub_satellite_points(station)
 
-# Подспутниковая точка
-point1 = calculate_sub_satellite_points(station)
+    # Центр камеры
+    point2 = calculate_center_cam_point(cam, mount, station)
 
-print("POINT1\n", point1)
+    # Левый и правый края обзора
+    point3, point4 = calculate_view_cam_points(cam, mount, station)
 
-# Центр камеры
+    current_folder = kml.newfolder(name=f"Виток_{circle}")
+    create_kml_track(current_folder, point1, "#FFFFFF", "Подспутниковая точка")
+    create_kml_track(current_folder, point2, "#FF0000", "Центр обзора")
+    create_kml_track(current_folder, point3, "#00FF00", "Граница обзора 1")
+    create_kml_track(current_folder, point4, "#00FF00", "Граница обзора 2")
 
-print(station)
+    print(f"Coords for {circle} calculated")
 
-point2 = calculate_center_cam_point(cam, mount, station)
-
-print("POINT2\n", point2)
-
-# Левый и правый края обзора
-
-point3, point4 = calculate_view_cam_points(cam, mount, station)
-
-print("POINT3\n", point3)
-print("POINT4\n", point4)
-
-# Делаем kml файл
-
-create_kml_from_tracks(
-    tracks=[point1, point2, point3, point4],
-    colors=["#FFFFFF", "#FF0000", "#00FF00", "#00FF00"],
-)
+kml.save("output.kml")
+print(f"KML файл успешно сохранен в {'output.kml'}")
