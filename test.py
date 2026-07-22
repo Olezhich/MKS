@@ -14,7 +14,7 @@ from datetime import datetime
 
 import simplekml  # type: ignore
 
-GIPER_FLAG = False  # Гиперспектрометр если True, иначе фотоаппарат
+GIPER_FLAG = True  # Гиперспектрометр если True, иначе фотоаппарат
 
 
 camera = Camera(35.9, 23.9, 600)

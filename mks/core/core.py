@@ -185,6 +185,6 @@ def calculate_circle_view_cam_points(
     res = []
 
     for vec in vecs:
-        res.append(calculate_cam_points(vec, mount, station))
+        res.append(calculate_cam_points(vec, mount, station)[0])
 
     return res
