@@ -107,7 +107,7 @@ def create_kml_circle(
     style.linestyle.color = hex_to_kml_color(color, alpha=255)
     style.linestyle.width = 3
 
-    coords = [(pt[0][0], pt[0][1]) for pt in circle]
+    coords = [(pt[0], pt[1]) for pt in circle]
 
     # Замыкаем контур (первая точка = последняя)
     if coords[0] != coords[-1]:

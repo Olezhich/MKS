@@ -2,7 +2,7 @@ import numpy as np
 
 
 def rotation_matrix(
-    yaw: float, pitch: float, roll: float, invert_order: bool = False
+    yaw: float, pitch: float, roll: float, invert_order: bool = True
 ) -> np.ndarray:
     """Возвращает матрицу поворота для локальной системы координат.
     Порядок применения поворотов: рысканье -> тангаж -> крен"""
