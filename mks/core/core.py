@@ -165,10 +165,10 @@ def calculate_rect_view_cam_points(
 
     # Вычисляем их долготу и широту
     coords = [
-        calculate_cam_points(lt, mount, station),
-        calculate_cam_points(rt, mount, station),
-        calculate_cam_points(rb, mount, station),
-        calculate_cam_points(lb, mount, station),
+        calculate_cam_points(lt, mount, station)[0],
+        calculate_cam_points(rt, mount, station)[0],
+        calculate_cam_points(rb, mount, station)[0],
+        calculate_cam_points(lb, mount, station)[0],
     ]
 
     return coords
