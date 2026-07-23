@@ -31,7 +31,7 @@ cam = giper if GIPER_FLAG else camera
 time_shot = datetime(2026, 6, 29, 14, 31, 42)
 
 generate_shot(
-    Path("out_orbitka.txt"),
+    Path("2_Orbita_UTC.txt"),
     cam,
     mount,
     time_shot,

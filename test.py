@@ -19,6 +19,6 @@ mount = Mount(np.deg2rad(0), np.deg2rad(0), np.deg2rad(0))
 t_start = datetime(2026, 6, 29, 10, 45)
 t_end = datetime(2026, 6, 30, 12, 55)
 
-orbita_path = Path("out_orbitka.txt")
+orbita_path = Path("2_Orbita_UTC.txt")
 
 generate_tracks(orbita_path, cam, mount, t_start, t_end)
