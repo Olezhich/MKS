@@ -8,15 +8,20 @@ import subprocess
 import json
 from PyQt5 import QtCore, QtWebEngineWidgets
 from PyQt5.QtWidgets import *
-import numpy as np
 import pandas as pd
 
 from mks.models import Camera, Mount, Giper
-from mks.utils import rotation_matrix
-from mks.core import generate_tracks
+from mks.core import generate_tracks, generate_shot
 
-ORBITA_UTC_PATH = Path("out_orbitka.txt")
+from datetime import datetime, timedelta
+
+ORBITA_UTC_PATH = Path("2_Orbita_UTC.txt")
+GIPER_PRICEL_PATH = Path("3_Giper_pricel.txt")
+DATA_TIME_PATH = Path("Data_time.txt")
+
 TRACKS_KML_PATH = Path("output.kml")
+
+TIME_DELTA = 90  # Время трассировки подспутниковой точки до и после точки съёмки
 
 
 class MainWindow(QMainWindow):
@@ -221,6 +226,10 @@ class PlanTab(QWidget):
         """Генерирует 2_Orbita_UTC.txt"""
         print("Кое-кто не написал функцию генерации 2_Orbita_UTC.txt")
 
+    def pricel_exec(self) -> None:
+        """Генерирует 3_Giper_pricel.txt"""
+        print("Кое-кто не написал функцию генерации 3_Giper_pricel.txt")
+
     def modelling_handler(self) -> None:
         self.orbita_exec()
 
@@ -254,6 +263,56 @@ class PlanTab(QWidget):
             )
         except Exception as e:
             print(e)
+
+    def calculation_handler(self) -> None:
+        self.pricel_exec()
+
+        if self.foto.isChecked():
+            focal = self.focal.value()  # Фокусное расстояние (мм)
+            matrix_w = self.matrix_width.value()  # Ширина матрицы (мм)
+            matrix_h = self.matrix_height.value()  # Высота матрицы (мм)
+            cam = [Camera(matrix_w, matrix_h, focal)]
+        elif self.giper.isChecked():
+            cam = [Giper(3.61, 1.0, 5), Giper(16, 9, 0), Giper(4.01, 1.0, -5)]
+        else:
+            raise RuntimeError("Ошибка при выборе камеры/гиперспектрометра")
+
+        with open(DATA_TIME_PATH, "r", encoding="cp1251") as f:
+            dt_f = f.readlines()
+            giper_delta = float(dt_f[2].split(" ")[0])
+
+        with open(GIPER_PRICEL_PATH, "r", encoding="cp1251") as f:
+            f.readline()
+            gp_f = f.readlines()
+            for i, line in enumerate(gp_f):
+                line = line.split()
+                t_shot = datetime(
+                    int(line[0]),
+                    int(line[1]),
+                    int(line[2]),
+                    int(line[3]),
+                    int(line[4]),
+                    int(line[5].split(".")[0]),
+                    int(line[5].split(".")[1]) * 100_000,
+                )
+                yaw = float(line[7])
+                roll = float(line[8])
+                pitch = float(line[9])
+
+                name = line[15]
+
+                mount = Mount(roll, pitch, yaw)
+
+                generate_shot(
+                    ORBITA_UTC_PATH,
+                    cam,
+                    mount,
+                    t_shot,
+                    timedelta(seconds=TIME_DELTA),
+                    timedelta(seconds=giper_delta),
+                    Path(f"Shot_{name}.kml"),
+                )
+                print(f"Снимок {t_shot}: {name}")
 
     def __init__(self):
         super().__init__()
@@ -393,6 +452,8 @@ class PlanTab(QWidget):
             b.setMinimumSize(80, 40)
             if text == "Моделировать":
                 b.clicked.connect(self.modelling_handler)
+            if text == "Расчет":
+                b.clicked.connect(self.calculation_handler)
 
             btn_layout.addWidget(b)
         btn_layout.addStretch()
