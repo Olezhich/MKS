@@ -224,26 +224,13 @@ class PlanTab(QWidget):
     def modelling_handler(self) -> None:
         self.orbita_exec()
 
-        mount = np.array(
-            [
-                np.deg2rad(self.device_roll.value()),
-                np.deg2rad(self.device_pitch.value()),
-                np.deg2rad(self.device_yaw.value()),
-            ]
-        )
-
-        m = rotation_matrix(
-            np.deg2rad(self.yaw.value()),
-            np.deg2rad(self.pitch.value()),
-            np.deg2rad(self.roll.value()),
-        )
-
-        mount_corrected = m @ mount
-
         mount = Mount(
-            np.rad2deg(mount_corrected[0]),
-            np.rad2deg(mount_corrected[1]),
-            np.rad2deg(mount_corrected[2]),
+            self.device_roll.value(),
+            self.device_pitch.value(),
+            self.device_yaw.value(),
+            self.roll.value(),
+            self.pitch.value(),
+            self.yaw.value(),
         )
 
         t_start = self.scan_start.dateTime().toPyDateTime()
