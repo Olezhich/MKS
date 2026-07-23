@@ -11,7 +11,7 @@ from PyQt5.QtWidgets import *
 import numpy as np
 import pandas as pd
 
-from mks.models import Camera, Mount
+from mks.models import Camera, Mount, Giper
 from mks.utils import rotation_matrix
 from mks.core import generate_tracks
 
@@ -255,6 +255,11 @@ class PlanTab(QWidget):
             matrix_h = self.matrix_height.value()  # Высота матрицы (мм)
 
             cam = Camera(matrix_w, matrix_h, focal)
+        elif self.giper.isChecked():
+            fov = self.giper_fov_manual.value()
+            cam = Giper(fov, 0, 0)
+        else:
+            raise RuntimeError("Ошибка при выборе камеры/гиперспектрометра")
 
         try:
             generate_tracks(
